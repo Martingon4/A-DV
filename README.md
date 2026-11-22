@@ -56,3 +56,9 @@ El plan gratuito de la base caduca a los 30 días. La web gratuita se suspende t
 Necesidad pendiente = solicitado − reservado − entregado. Si el inventario alcanza, cada centro recibe toda su necesidad pendiente. En escasez, cuota = inventario disponible × necesidad del centro / necesidad total. Primero se asigna la parte entera y las unidades restantes se reparten por mayor resto decimal. En empate se usa el identificador estable del centro.
 
 Ejemplo de 90 kits con necesidades de 80, 60 y 40 produce asignaciones de 40, 30 y 20. Todas las solicitudes tienen igual prioridad. Coordinación revisa y confirma. Esta política inicial requiere acuerdo con la organización para un uso real.
+
+### PostgreSQL gratuito externo
+
+El Blueprint usa ahora DATABASE_URL como variable privada suministrada desde Neon. La web permanece en Render Free. Crear un proyecto Neon Free dedicado a A-DV y copiar su conexión PostgreSQL con sslmode=require al campo DATABASE_URL de Render. Las migraciones y el seed se ejecutan al arrancar. El Blueprint ya no intenta crear otra base en Render. La base twitch-pro-data pertenece al otro proyecto y conserva su configuración.
+
+Consultar los límites vigentes de Neon Free en https://neon.com/pricing.
