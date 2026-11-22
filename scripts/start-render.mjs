@@ -1,4 +1,6 @@
 import { spawnSync, spawn } from "node:child_process";
+import { normalizeDatabaseUrl } from "./database-url.mjs";
+process.env.DATABASE_URL = normalizeDatabaseUrl(process.env.DATABASE_URL);
 function run(command, args) {
   const result = spawnSync(command, args, { stdio: "inherit", env: process.env });
   if (result.status !== 0) process.exit(result.status ?? 1);
