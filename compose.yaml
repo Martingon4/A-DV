@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "127.0.0.1:5438:5432"
+    environment:
+      POSTGRES_USER: donaciones
+      POSTGRES_PASSWORD: local_dev_password
+      POSTGRES_DB: donaciones
+    volumes:
+      - donation_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U donaciones"]
+      interval: 3s
+      retries: 20
+volumes:
+  donation_data:

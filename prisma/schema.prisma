@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+model User {
+  id String @id @default(cuid())
+  name String?
+  email String? @unique
+  emailVerified DateTime?
+  image String?
+  accounts Account[]
+  sessions Session[]
+}
+model Account {
+  id String @id @default(cuid())
+  userId String
+  type String
+  provider String
+  providerAccountId String
+  refresh_token String?
+  access_token String?
+  expires_at Int?
+  token_type String?
+  scope String?
+  id_token String?
+  session_state String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+model Session {
+  sessionToken String @unique
+  userId String
+  expires DateTime
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+model VerificationToken {
+  identifier String
+  token String @unique
+  expires DateTime
+  @@unique([identifier, token])
+}
+model Membership {
+  email String @id
+  organizationId String
+  centerId String?
+  role String
+}
+model Organization {
+  id String @id
+  name String
+}
+model Center {
+  id String @id
+  organizationId String
+  name String
+  location String
+  requests Request[]
+}
+model Campaign {
+  id String @id
+  organizationId String
+  name String
+}
+model Product {
+  id String @id
+  organizationId String
+  name String
+  unit String
+}
+model Balance {
+  id String @id
+  organizationId String
+  productId String @unique
+  onHand Int @default(0)
+  reserved Int @default(0)
+  version Int @default(0)
+}
+model Request {
+  id String @id
+  organizationId String
+  campaignId String
+  productId String
+  centerId String
+  requested Int
+  version Int @default(0)
+  center Center @relation(fields: [centerId], references: [id])
+  lines AllocationLine[]
+  @@unique([campaignId, centerId, productId])
+}
+model AllocationRun {
+  id String @id @default(cuid())
+  organizationId String
+  status String @default("DRAFT")
+  snapshot Json
+  algorithmVersion String @default("proportional-v1")
+  createdAt DateTime @default(now())
+  lines AllocationLine[]
+}
+model AllocationLine {
+  id String @id @default(cuid())
+  runId String
+  requestId String
+  quantity Int
+  explanation String
+  status String @default("RESERVED")
+  run AllocationRun @relation(fields: [runId], references: [id])
+  request Request @relation(fields: [requestId], references: [id])
+}
+model Event {
+  id String @id @default(cuid())
+  organizationId String
+  centerId String?
+  actor String
+  action String
+  quantity Int?
+  reference String?
+  idempotencyKey String? @unique
+  createdAt DateTime @default(now())
+}

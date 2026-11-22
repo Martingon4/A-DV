@@ -1,0 +1,38 @@
+import { chromium } from "@playwright/test";
+import assert from "node:assert/strict";
+const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,headless:true});
+try {
+ const timeout = setTimeout(()=>process.exit(1),60000); timeout.unref();
+ const page=await browser.newPage({viewport:{width:1440,height:1000}});
+ await page.goto(`${process.env.APP_URL || "http://localhost:3005"}/login`);
+ await page.getByRole("button",{name:"Entrar como coordinación",exact:true}).click();
+ await page.getByRole("heading",{name:"Cada kit cuenta."}).waitFor();
+ await page.getByRole("heading",{name:"Necesidades de los centros"}).waitFor();
+ await page.getByRole("button",{name:"Registrar donación",exact:true}).click();
+ await page.getByLabel("Cantidad de kits").fill("90");
+ await page.getByLabel("Referencia de recepción").fill("Prueba navegador");
+ await page.getByRole("button",{name:"Guardar donación"}).click();
+ await page.getByRole("status").filter({hasText:"Donación registrada."}).waitFor();
+ await page.getByRole("button",{name:"Preparar reparto"}).click();
+ await page.getByRole("dialog").waitFor();
+ assert.equal(await page.locator(".proposal-line").count(),3);
+ await page.getByRole("button",{name:"Confirmar y reservar"}).click();
+ await page.getByRole("status").filter({hasText:"Reparto confirmado"}).waitFor();
+ await page.getByRole("button",{name:"Entregas",exact:true}).click();
+ await page.getByRole("heading",{name:"Asignaciones y entregas"}).waitFor();
+ page.on("dialog",dialog=>dialog.accept());
+ await page.getByRole("button",{name:"Registrar entrega",exact:true}).first().click();
+ await page.getByRole("status").filter({hasText:"Entrega registrada."}).waitFor();
+ await page.getByRole("button",{name:"Resumen",exact:true}).click();
+ await page.screenshot({path:"/tmp/donaciones-desktop.png",fullPage:true});
+ await page.setViewportSize({width:390,height:844});
+ await page.screenshot({path:"/tmp/donaciones-mobile.png",fullPage:true});
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));
+ await page.getByRole("button",{name:"Cerrar sesión"}).filter({visible:true}).click();
+ await page.goto(`${process.env.APP_URL || "http://localhost:3005"}/login`);
+ await page.getByRole("button",{name:"Entrar como Centro Esperanza"}).click();
+ await page.getByRole("heading",{name:"Necesidades de los centros"}).waitFor();
+ assert.equal(await page.locator("tbody tr").count(),1);
+ assert.equal(await page.getByRole("button",{name:"Registrar donación",exact:true}).count(),0);
+ console.log("Navegador correcto: acceso, donación, reparto, entrega, móvil y perfil de centro.");
+} finally {await browser.close();}
